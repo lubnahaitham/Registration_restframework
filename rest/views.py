@@ -9,6 +9,8 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 
 # Create your views here.
@@ -75,10 +77,19 @@ class LoginList(APIView):
     #this serializer model viewset to view it in restframework, remove the comment to use it
     
     # serializer_class = LoginSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['email', 'first_name']
+
+
     
     """
     List all, or create a new.
     """
+
+    def get_queryset(self):
+        user = self.request.user
+        return Users.objects.filter(first_name=user)
+    
 
     def get(self, request, format=None):
         user_login = Users.objects.all()
@@ -131,11 +142,17 @@ class ProductList(APIView):
     #this serializer model viewset to view it in restframework, remove the comment to use it
     
     # serializer_class = ProductSerializer
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['price']
     
     """
     List all, or create a new.
     """
-
+    
+    def get_queryset(self):
+        return Products.objects.order_by('price')
+    
+    
     def get(self, request, format=None):
         product = Products.objects.all()
         serializer = ProductSerializer(product, many=True)
